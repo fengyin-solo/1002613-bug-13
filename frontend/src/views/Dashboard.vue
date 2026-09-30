@@ -12,6 +12,11 @@
         <strong class="stat-value">{{ card.value }}</strong>
       </article>
     </div>
+    <p v-if="bridgeStats" class="reconcile-line">
+      廊桥靠接台数 <strong>{{ bridgeStats.docked }}</strong> 台
+      （已靠接 {{ bridgeStats.by_status['已靠接'] }} ＋ 待撤离 {{ bridgeStats.by_status['待撤离'] }}），
+      与廊桥对接页桥位明细逐条同源；在用廊桥共 {{ bridgeStats.total }} 座，检修中 {{ bridgeStats.by_status['检修中'] }} 座。
+    </p>
     <table class="data-table">
       <thead>
         <tr><th>业务模块</th><th>今日新增</th><th>待处理</th><th>异常量</th></tr>
@@ -36,19 +41,26 @@ import { fetchJson } from '@/api/client'
 type Overview = {
   cards: { label: string; value: number }[]
   modules: { name: string; created: number; pending: number; abnormal: number }[]
+  bridge_stats?: { total: number; docked: number; by_status: Record<string, number> }
 }
 
 const cards = ref<Overview['cards']>([])
 const moduleRows = ref<Overview['modules']>([])
+const bridgeStats = ref<Overview['bridge_stats'] | null>(null)
 
 onMounted(async () => {
   try {
     const payload = await fetchJson<Overview>('/api/overview')
     cards.value = payload.cards
     moduleRows.value = payload.modules
+    bridgeStats.value = payload.bridge_stats ?? null
   } catch {
     cards.value = [{"label": "业务模块", "value": 0}, {"label": "今日新增", "value": 0}]
     moduleRows.value = [{"name": "机位分配", "created": 0, "pending": 0, "abnormal": 0}, {"name": "引导入位", "created": 0, "pending": 0, "abnormal": 0}, {"name": "廊桥对接", "created": 0, "pending": 0, "abnormal": 0}, {"name": "行李装卸", "created": 0, "pending": 0, "abnormal": 0}, {"name": "航食配餐", "created": 0, "pending": 0, "abnormal": 0}, {"name": "航油加注", "created": 0, "pending": 0, "abnormal": 0}, {"name": "除冰作业", "created": 0, "pending": 0, "abnormal": 0}, {"name": "清水排污", "created": 0, "pending": 0, "abnormal": 0}, {"name": "推出开车", "created": 0, "pending": 0, "abnormal": 0}, {"name": "地面设备", "created": 0, "pending": 0, "abnormal": 0}, {"name": "货物装卸", "created": 0, "pending": 0, "abnormal": 0}, {"name": "放行签派", "created": 0, "pending": 0, "abnormal": 0}, {"name": "过站保障", "created": 0, "pending": 0, "abnormal": 0}, {"name": "机坪巡查", "created": 0, "pending": 0, "abnormal": 0}, {"name": "航空气象", "created": 0, "pending": 0, "abnormal": 0}, {"name": "特种车辆", "created": 0, "pending": 0, "abnormal": 0}, {"name": "人员排班", "created": 0, "pending": 0, "abnormal": 0}, {"name": "跑道灯光", "created": 0, "pending": 0, "abnormal": 0}, {"name": "应急处置", "created": 0, "pending": 0, "abnormal": 0}, {"name": "质量监察", "created": 0, "pending": 0, "abnormal": 0}]
   }
 })
 </script>
+
+<style scoped>
+.reconcile-line { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+</style>

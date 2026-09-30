@@ -35,4 +35,9 @@ def health() -> dict[str, object]:
 @app.get("/api/overview")
 def overview() -> dict[str, object]:
     """运营概览：把各业务模块的待处理量汇总成看板卡片。"""
-    return store.overview()
+    data = store.overview()
+    # 廊桥靠接台数与桥位明细逐条统计，保证总览卡片和廊桥页对得上。
+    from app.services.bridge import BridgeService
+
+    data["bridge_stats"] = BridgeService().stats()
+    return data

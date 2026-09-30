@@ -19,6 +19,7 @@ class ActionResult(BaseModel):
     ok: bool
     message: str
     entry: dict[str, Any] | None = None
+    code: str | None = None  # saved/conflict/duplicate/invalid_height/locked 等结果码
 
 
 class EntryPayload(BaseModel):
