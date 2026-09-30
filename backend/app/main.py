@@ -10,9 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import ROUTERS
+from app.services.bridge import BridgeService
 from app.store import store
 
 app = FastAPI(title="机场地面保障管理平台", version="1.0.0")
+
+bridge_service = BridgeService()
 
 app.add_middleware(
     CORSMiddleware,
@@ -34,5 +37,11 @@ def health() -> dict[str, object]:
 
 @app.get("/api/overview")
 def overview() -> dict[str, object]:
-    """运营概览：把各业务模块的待处理量汇总成看板卡片。"""
-    return store.overview()
+    """运营概览：把各业务模块的待处理量汇总成看板卡片。
+
+    廊桥的靠接台数直接取桥位明细的实时统计，与桥位明细逐条同源，
+    避免概览数字和明细页对不上。
+    """
+    data = store.overview()
+    data["bridgeSummary"] = bridge_service.summary()
+    return data

@@ -12,6 +12,20 @@
         <strong class="stat-value">{{ card.value }}</strong>
       </article>
     </div>
+    <div class="stat-row bridge-row">
+      <article class="stat-card bridge-total">
+        <span class="stat-label">廊桥靠接台数（取自桥位明细逐条统计）</span>
+        <strong class="stat-value">{{ bridgeSummary['靠接台数'] ?? 0 }}</strong>
+      </article>
+      <article v-for="status in bridgeStatuses" :key="status" class="stat-card">
+        <span class="stat-label">{{ status }}</span>
+        <strong class="stat-value">{{ bridgeSummary[status] ?? 0 }}</strong>
+      </article>
+    </div>
+    <p class="reconcile-hint">
+      核对口径：靠接台数 = 已靠接 {{ bridgeSummary['已靠接'] ?? 0 }} + 待撤离
+      {{ bridgeSummary['待撤离'] ?? 0 }}，与廊桥对接页桥位明细逐条对得上。
+    </p>
     <table class="data-table">
       <thead>
         <tr><th>业务模块</th><th>今日新增</th><th>待处理</th><th>异常量</th></tr>
@@ -36,19 +50,37 @@ import { fetchJson } from '@/api/client'
 type Overview = {
   cards: { label: string; value: number }[]
   modules: { name: string; created: number; pending: number; abnormal: number }[]
+  bridgeSummary?: Record<string, number>
 }
 
 const cards = ref<Overview['cards']>([])
 const moduleRows = ref<Overview['modules']>([])
+const bridgeSummary = ref<Record<string, number>>({})
+const bridgeStatuses = ['待靠接', '已靠接', '待撤离', '检修中']
 
 onMounted(async () => {
   try {
     const payload = await fetchJson<Overview>('/api/overview')
     cards.value = payload.cards
     moduleRows.value = payload.modules
+    bridgeSummary.value = payload.bridgeSummary ?? {}
   } catch {
     cards.value = [{"label": "业务模块", "value": 0}, {"label": "今日新增", "value": 0}]
     moduleRows.value = [{"name": "机位分配", "created": 0, "pending": 0, "abnormal": 0}, {"name": "引导入位", "created": 0, "pending": 0, "abnormal": 0}, {"name": "廊桥对接", "created": 0, "pending": 0, "abnormal": 0}, {"name": "行李装卸", "created": 0, "pending": 0, "abnormal": 0}, {"name": "航食配餐", "created": 0, "pending": 0, "abnormal": 0}, {"name": "航油加注", "created": 0, "pending": 0, "abnormal": 0}, {"name": "除冰作业", "created": 0, "pending": 0, "abnormal": 0}, {"name": "清水排污", "created": 0, "pending": 0, "abnormal": 0}, {"name": "推出开车", "created": 0, "pending": 0, "abnormal": 0}, {"name": "地面设备", "created": 0, "pending": 0, "abnormal": 0}, {"name": "货物装卸", "created": 0, "pending": 0, "abnormal": 0}, {"name": "放行签派", "created": 0, "pending": 0, "abnormal": 0}, {"name": "过站保障", "created": 0, "pending": 0, "abnormal": 0}, {"name": "机坪巡查", "created": 0, "pending": 0, "abnormal": 0}, {"name": "航空气象", "created": 0, "pending": 0, "abnormal": 0}, {"name": "特种车辆", "created": 0, "pending": 0, "abnormal": 0}, {"name": "人员排班", "created": 0, "pending": 0, "abnormal": 0}, {"name": "跑道灯光", "created": 0, "pending": 0, "abnormal": 0}, {"name": "应急处置", "created": 0, "pending": 0, "abnormal": 0}, {"name": "质量监察", "created": 0, "pending": 0, "abnormal": 0}]
   }
 })
 </script>
+
+<style scoped>
+.bridge-row {
+  gap: 12px;
+}
+.bridge-total {
+  border-color: #1f6feb;
+}
+.reconcile-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 12px;
+}
+</style>
